@@ -73,7 +73,7 @@
       text-align: center;
       width: 350px;
       box-shadow: 0 0 25px rgba(0,0,0,0.6);
-      transition: 0.4s ease;
+      transition: transform 0.6s ease, background 0.4s ease, box-shadow 0.6s ease;
       opacity: 0;
       transform: scale(0.9);
       overflow: hidden;
@@ -85,13 +85,13 @@
       to { opacity: 1; transform: scale(1); }
     }
     .card:hover {
-      transform: scale(1.03);
+      transform: scale(1.06);
       background: rgba(0, 0, 0, 0.7);
       backdrop-filter: blur(14px);
-      box-shadow: 0 0 35px rgba(255,255,255,0.1);
+      box-shadow: 0 0 40px rgba(255,255,255,0.15);
     }
 
-    /* 🖼️ Аватарка с Discord-статусом */
+    /* 🖼️ Аватарка и Discord-статус */
     .avatar-wrapper {
       position: relative;
       display: inline-block;
@@ -101,7 +101,7 @@
       height: 100px;
       border-radius: 50%;
       border: 3px solid #fff;
-      transition: transform 0.08s ease-out, box-shadow 0.3s ease;
+      transition: transform 0.1s ease-out, box-shadow 0.3s ease;
     }
     .card:hover .pfp {
       box-shadow: 0 0 25px rgba(255,255,255,0.4);
@@ -118,6 +118,7 @@
       background-size: cover;
       background-position: center;
       box-shadow: 0 0 5px rgba(0,0,0,0.5);
+      transition: transform 0.1s ease-out;
     }
 
     .name {
@@ -219,6 +220,7 @@
     const card = document.getElementById("card");
     const music = document.getElementById("bg-music");
     const pfp = document.getElementById("pfp");
+    const statusIcon = document.getElementById("discord-status-icon");
 
     // === Кнопки ===
     const links = [
@@ -237,7 +239,6 @@
 
     // === Discord статус ===
     async function updateStatus() {
-      const statusIcon = document.getElementById("discord-status-icon");
       try {
         const res = await fetch("https://api.lanyard.rest/v1/users/1223426765045633255");
         const data = await res.json();
@@ -267,9 +268,10 @@
       setTimeout(() => intro.remove(), 2000);
       music.play().catch(() => {});
       startVisualizer();
+      animateTitle();
     });
 
-    // === Реакция на бит ===
+    // === Реакция на бит (ава + статус + карточка) ===
     function startVisualizer() {
       const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       const src = audioCtx.createMediaElementSource(music);
@@ -285,7 +287,11 @@
         analyser.getByteFrequencyData(dataArray);
         const avg = dataArray.reduce((a, b) => a + b) / bufferLength;
         const scale = 1 + avg / 400;
-        pfp.style.transform = `scale(${Math.min(scale, 1.25)})`;
+
+        const limited = Math.min(scale, 1.25);
+        pfp.style.transform = `scale(${limited})`;
+        statusIcon.style.transform = `scale(${limited}) translate(${(scale - 1) * 12}px, ${(scale - 1) * 12}px)`;
+        card.style.transform = `scale(${1 + avg / 1800})`;
       }
       animate();
     }
@@ -307,8 +313,8 @@
     });
     card.addEventListener("mouseleave", () => clearInterval(heartInterval));
 
-    // === 🔠 Анимация title (@THOMSON) ===
-    (function animateTitle() {
+    // === 🔠 Анимация title ===
+    function animateTitle() {
       const full = "@THOMSON";
       let i = 0;
       let deleting = false;
@@ -321,13 +327,13 @@
           i--;
         } else {
           deleting = !deleting;
-          setTimeout(loop, 800);
+          setTimeout(loop, 1200);
           return;
         }
-        setTimeout(loop, 200);
+        setTimeout(loop, 300);
       }
       loop();
-    })();
+    }
   </script>
 </body>
 </html>
