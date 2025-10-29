@@ -204,7 +204,7 @@
       <img src="assets/icon.png" class="pfp" id="pfp">
       <div id="discord-status-icon" class="status-icon"></div>
     </div>
-    <div class="name" id="name">@THOMSON</div>
+    <div class="name">@THOMSON</div>
     <div class="status">HATE</div>
     <div class="links" id="links"></div>
   </div>
@@ -219,7 +219,6 @@
     const card = document.getElementById("card");
     const music = document.getElementById("bg-music");
     const pfp = document.getElementById("pfp");
-    const nameEl = document.getElementById("name");
 
     // === Кнопки ===
     const links = [
@@ -268,7 +267,6 @@
       setTimeout(() => intro.remove(), 2000);
       music.play().catch(() => {});
       startVisualizer();
-      animateName();
     });
 
     // === Реакция на бит ===
@@ -309,27 +307,27 @@
     });
     card.addEventListener("mouseleave", () => clearInterval(heartInterval));
 
-    // === ✨ Анимация появления ника ===
-    function animateName() {
+    // === 🔠 Анимация title (@THOMSON) ===
+    (function animateTitle() {
       const full = "@THOMSON";
       let i = 0;
       let deleting = false;
 
       function loop() {
-        nameEl.textContent = full.substring(0, i);
+        document.title = full.substring(0, i);
         if (!deleting && i < full.length) {
           i++;
         } else if (deleting && i > 1) {
           i--;
         } else {
           deleting = !deleting;
-          setTimeout(loop, 800); // пауза на концах
+          setTimeout(loop, 800);
           return;
         }
-        setTimeout(loop, 150);
+        setTimeout(loop, 200);
       }
       loop();
-    }
+    })();
   </script>
 </body>
 </html>
