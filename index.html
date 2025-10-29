@@ -19,27 +19,50 @@
       justify-content: center;
       color: white;
       overflow: hidden;
+      position: relative;
     }
+    /* — Эффект блюра и затемнения фона — */
+    body::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      backdrop-filter: blur(6px);
+      background: rgba(0, 0, 0, 0.35);
+      z-index: 0;
+    }
+
     .card {
-      background: rgba(0, 0, 0, 0.6);
+      position: relative;
+      z-index: 1;
+      background: rgba(0, 0, 0, 0.55);
       backdrop-filter: blur(8px);
       border-radius: 16px;
       padding: 40px;
       text-align: center;
       width: 350px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.5);
-      transition: 0.3s;
+      box-shadow: 0 0 25px rgba(0,0,0,0.6);
+      transition: 0.3s ease;
       animation: fadeIn 1s ease;
     }
     .card:hover {
       transform: scale(1.03);
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(14px);
+      box-shadow: 0 0 35px rgba(255,255,255,0.1);
     }
+
     .pfp {
       width: 100px; height: 100px;
       border-radius: 50%;
       margin-bottom: 15px;
       border: 3px solid #fff;
+      transition: 0.4s ease;
     }
+    .card:hover .pfp {
+      transform: scale(1.08);
+      box-shadow: 0 0 25px rgba(255,255,255,0.4);
+    }
+
     .name {
       font-size: 28px;
       font-weight: 600;
@@ -48,46 +71,51 @@
     .status {
       margin: 5px 0;
       font-size: 14px;
-      opacity: 0.8;
+      opacity: 0.85;
     }
+
     .links {
-      margin-top: 20px;
+      margin-top: 25px;
       display: flex;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
     }
+
     .btn {
       background: rgba(255, 255, 255, 0.1);
       padding: 10px;
-      border-radius: 10px;
+      border-radius: 12px;
       color: white;
       text-decoration: none;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 10px;
-      transition: 0.2s;
-    }
-    .btn:hover {
-      background: rgba(255, 255, 255, 0.3);
-      transform: scale(1.05);
+      transition: 0.3s ease;
     }
     .btn img {
-      width: 18px;
-      height: 18px;
+      width: 20px;
+      height: 20px;
+      transition: 0.3s ease;
+      filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));
     }
-    audio {
-      position: fixed;
-      bottom: 15px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 200px;
-      opacity: 0.8;
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      transform: scale(1.05);
+    }
+    .btn:hover img {
+      transform: scale(1.2);
+      filter: drop-shadow(0 0 10px rgba(255,255,255,0.7));
     }
 
     @keyframes fadeIn {
       from { opacity: 0; transform: scale(0.9); }
       to { opacity: 1; transform: scale(1); }
+    }
+
+    /* — Скрытый аудиоплеер — */
+    audio {
+      display: none;
     }
   </style>
 </head>
@@ -102,12 +130,23 @@
     <div class="links" id="links"></div>
   </div>
 
-  <audio controls autoplay loop>
+  <!-- 🎵 Музыка — играет автоматически -->
+  <audio id="bg-music" autoplay loop>
     <source src="assets/music.mp3" type="audio/mp3">
   </audio>
 
   <script>
-    // === Кнопки (можно добавлять, менять, удалять) ===
+    // === Воспроизведение музыки без плеера ===
+    document.addEventListener('DOMContentLoaded', () => {
+      const music = document.getElementById('bg-music');
+      const playMusic = () => {
+        music.play().catch(() => {});
+      };
+      playMusic();
+      document.body.addEventListener('click', playMusic, { once: true });
+    });
+
+    // === Кнопки (добавляй по аналогии) ===
     const links = [
       { icon: "https://cdn-icons-png.flaticon.com/512/5968/5968756.png", text: "Discord", url: "https://discord.com/users/1223426765045633255" },
       { icon: "https://cdn-icons-png.flaticon.com/512/2111/2111646.png", text: "Telegram", url: "https://t.me/yourusername" },
@@ -123,7 +162,7 @@
       linksContainer.appendChild(a);
     });
 
-    // === Discord статус через Lanyard API ===
+    // === Discord статус ===
     async function updateStatus() {
       try {
         const res = await fetch("https://api.lanyard.rest/v1/users/1223426765045633255");
