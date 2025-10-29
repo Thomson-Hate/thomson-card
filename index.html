@@ -23,32 +23,50 @@
       color: white;
     }
 
-    /* 🎬 Киноэффект + размытие фона */
+    /* 🎬 Эффект кино и размытие */
     body::before {
       content: "";
       position: absolute;
       inset: 0;
       backdrop-filter: blur(8px);
-      background: rgba(0,0,0,0.4);
+      background: rgba(0,0,0,0.45);
       z-index: 0;
     }
 
-    /* 🕒 Интро-затемнение */
+    /* 🌑 Интро-заставка */
     .intro {
       position: fixed;
       inset: 0;
       background: black;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 12px;
+      font-size: 20px;
+      letter-spacing: 1px;
       z-index: 100;
-      opacity: 1;
-      animation: fadeOut 2s ease forwards;
-      animation-delay: 1.5s;
+      transition: opacity 1.8s ease;
     }
 
-    @keyframes fadeOut {
-      to { opacity: 0; visibility: hidden; }
+    .intro.hide {
+      opacity: 0;
+      pointer-events: none;
     }
 
-    /* 🌫️ Карточка */
+    .intro-text {
+      opacity: 0.8;
+      font-size: 22px;
+      animation: blink 1.5s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 0.6; }
+      50% { opacity: 1; }
+    }
+
+    /* 💠 Карточка */
     .card {
       position: relative;
       z-index: 1;
@@ -62,8 +80,10 @@
       transition: 0.4s ease;
       opacity: 0;
       transform: scale(0.9);
+    }
+
+    .card.show {
       animation: cardIn 1.5s ease forwards;
-      animation-delay: 1.5s;
     }
 
     @keyframes cardIn {
@@ -77,7 +97,7 @@
       box-shadow: 0 0 35px rgba(255,255,255,0.1);
     }
 
-    /* 🖼️ Аватарка с иконкой статуса */
+    /* 🖼️ Аватарка с индикатором Discord */
     .avatar-wrapper {
       position: relative;
       display: inline-block;
@@ -147,15 +167,20 @@
       filter: drop-shadow(0 0 10px rgba(255,255,255,0.7));
     }
 
-    /* Скрытый плеер */
+    /* 🎵 Плеер скрыт */
     audio { display: none; }
   </style>
 </head>
 <body>
 
-  <div class="intro"></div>
+  <!-- 🎬 Интро -->
+  <div class="intro" id="intro">
+    <div style="font-size: 26px; font-weight: 600; letter-spacing: 2px;">HATE</div>
+    <div class="intro-text">Нажмите, чтобы войти</div>
+  </div>
 
-  <div class="card">
+  <!-- 💾 Основная карточка -->
+  <div class="card" id="card">
     <div class="avatar-wrapper">
       <img src="assets/icon.png" class="pfp">
       <div id="discord-status-icon" class="status-icon"></div>
@@ -165,18 +190,25 @@
     <div class="links" id="links"></div>
   </div>
 
-  <!-- 🎵 Музыка -->
-  <audio id="bg-music" autoplay loop>
+  <!-- 🎧 Музыка -->
+  <audio id="bg-music" loop>
     <source src="assets/music.mp3" type="audio/mp3">
   </audio>
 
   <script>
-    // === Автоматическое воспроизведение музыки ===
-    document.addEventListener('DOMContentLoaded', () => {
-      const music = document.getElementById('bg-music');
-      const playMusic = () => music.play().catch(() => {});
-      playMusic();
-      document.body.addEventListener('click', playMusic, { once: true });
+    const intro = document.getElementById("intro");
+    const card = document.getElementById("card");
+    const music = document.getElementById("bg-music");
+
+    // Ожидание клика на интро
+    intro.addEventListener("click", () => {
+      intro.classList.add("hide");
+      card.classList.add("show");
+      setTimeout(() => {
+        intro.remove();
+      }, 2000);
+      // Запуск музыки
+      music.play().catch(() => {});
     });
 
     // === Кнопки ссылок ===
@@ -195,7 +227,7 @@
       linksContainer.appendChild(a);
     });
 
-    // === Discord статус и иконка как в Discord ===
+    // === Discord статус ===
     async function updateStatus() {
       const statusIcon = document.getElementById("discord-status-icon");
       try {
