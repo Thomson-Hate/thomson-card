@@ -11,26 +11,44 @@
       box-sizing: border-box;
       font-family: 'Poppins', sans-serif;
     }
+
     body {
       height: 100vh;
       background: url('assets/banner.gif') no-repeat center center/cover;
       display: flex;
       align-items: center;
       justify-content: center;
-      color: white;
       overflow: hidden;
       position: relative;
+      color: white;
     }
-    /* — Эффект блюра и затемнения фона — */
+
+    /* 🎬 Киноэффект + размытие фона */
     body::before {
       content: "";
       position: absolute;
       inset: 0;
-      backdrop-filter: blur(6px);
-      background: rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(8px);
+      background: rgba(0,0,0,0.4);
       z-index: 0;
     }
 
+    /* 🕒 Интро-затемнение */
+    .intro {
+      position: fixed;
+      inset: 0;
+      background: black;
+      z-index: 100;
+      opacity: 1;
+      animation: fadeOut 2s ease forwards;
+      animation-delay: 1.5s;
+    }
+
+    @keyframes fadeOut {
+      to { opacity: 0; visibility: hidden; }
+    }
+
+    /* 🌫️ Карточка */
     .card {
       position: relative;
       z-index: 1;
@@ -41,9 +59,17 @@
       text-align: center;
       width: 350px;
       box-shadow: 0 0 25px rgba(0,0,0,0.6);
-      transition: 0.3s ease;
-      animation: fadeIn 1s ease;
+      transition: 0.4s ease;
+      opacity: 0;
+      transform: scale(0.9);
+      animation: cardIn 1.5s ease forwards;
+      animation-delay: 1.5s;
     }
+
+    @keyframes cardIn {
+      to { opacity: 1; transform: scale(1); }
+    }
+
     .card:hover {
       transform: scale(1.03);
       background: rgba(0, 0, 0, 0.7);
@@ -51,10 +77,14 @@
       box-shadow: 0 0 35px rgba(255,255,255,0.1);
     }
 
+    /* 🖼️ Аватарка с иконкой статуса */
+    .avatar-wrapper {
+      position: relative;
+      display: inline-block;
+    }
     .pfp {
       width: 100px; height: 100px;
       border-radius: 50%;
-      margin-bottom: 15px;
       border: 3px solid #fff;
       transition: 0.4s ease;
     }
@@ -63,15 +93,24 @@
       box-shadow: 0 0 25px rgba(255,255,255,0.4);
     }
 
+    .status-icon {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 3px solid #18191c;
+      background-size: cover;
+      background-position: center;
+      box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    }
+
     .name {
       font-size: 28px;
       font-weight: 600;
       text-shadow: 0 0 10px rgba(255,255,255,0.5);
-    }
-    .status {
-      margin: 5px 0;
-      font-size: 14px;
-      opacity: 0.85;
+      margin-top: 10px;
     }
 
     .links {
@@ -108,45 +147,39 @@
       filter: drop-shadow(0 0 10px rgba(255,255,255,0.7));
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: scale(0.9); }
-      to { opacity: 1; transform: scale(1); }
-    }
-
-    /* — Скрытый аудиоплеер — */
-    audio {
-      display: none;
-    }
+    /* Скрытый плеер */
+    audio { display: none; }
   </style>
 </head>
 <body>
 
-  <div class="card">
-    <img src="assets/icon.png" class="pfp">
-    <div class="name">Thomson</div>
-    <div id="discord-status" class="status">Loading Discord status...</div>
-    <div class="status">HATE</div>
+  <div class="intro"></div>
 
+  <div class="card">
+    <div class="avatar-wrapper">
+      <img src="assets/icon.png" class="pfp">
+      <div id="discord-status-icon" class="status-icon"></div>
+    </div>
+    <div class="name">Thomson</div>
+    <div class="status">HATE</div>
     <div class="links" id="links"></div>
   </div>
 
-  <!-- 🎵 Музыка — играет автоматически -->
+  <!-- 🎵 Музыка -->
   <audio id="bg-music" autoplay loop>
     <source src="assets/music.mp3" type="audio/mp3">
   </audio>
 
   <script>
-    // === Воспроизведение музыки без плеера ===
+    // === Автоматическое воспроизведение музыки ===
     document.addEventListener('DOMContentLoaded', () => {
       const music = document.getElementById('bg-music');
-      const playMusic = () => {
-        music.play().catch(() => {});
-      };
+      const playMusic = () => music.play().catch(() => {});
       playMusic();
       document.body.addEventListener('click', playMusic, { once: true });
     });
 
-    // === Кнопки (добавляй по аналогии) ===
+    // === Кнопки ссылок ===
     const links = [
       { icon: "https://cdn-icons-png.flaticon.com/512/5968/5968756.png", text: "Discord", url: "https://discord.com/users/1223426765045633255" },
       { icon: "https://cdn-icons-png.flaticon.com/512/2111/2111646.png", text: "Telegram", url: "https://t.me/yourusername" },
@@ -162,27 +195,26 @@
       linksContainer.appendChild(a);
     });
 
-    // === Discord статус ===
+    // === Discord статус и иконка как в Discord ===
     async function updateStatus() {
+      const statusIcon = document.getElementById("discord-status-icon");
       try {
         const res = await fetch("https://api.lanyard.rest/v1/users/1223426765045633255");
         const data = await res.json();
-        const statusDiv = document.getElementById("discord-status");
         if (!data.success) {
-          statusDiv.textContent = "Offline";
+          statusIcon.style.background = "#747f8d";
           return;
         }
-        const discordStatus = data.data.discord_status;
-        let statusText = "";
-        switch (discordStatus) {
-          case "online": statusText = "🟢 Online"; break;
-          case "idle": statusText = "🌙 Idle"; break;
-          case "dnd": statusText = "🔴 Do Not Disturb"; break;
-          default: statusText = "⚫ Offline";
-        }
-        statusDiv.textContent = statusText;
+        const status = data.data.discord_status;
+        const colors = {
+          online: "#3ba55d",
+          idle: "#faa61a",
+          dnd: "#ed4245",
+          offline: "#747f8d"
+        };
+        statusIcon.style.background = colors[status] || "#747f8d";
       } catch {
-        document.getElementById("discord-status").textContent = "Offline";
+        statusIcon.style.background = "#747f8d";
       }
     }
 
