@@ -103,13 +103,14 @@
       display: inline-block;
     }
     .pfp {
-      width: 100px; height: 100px;
+      width: 100px;
+      height: 100px;
       border-radius: 50%;
       border: 3px solid #fff;
-      transition: 0.4s ease;
+      transition: transform 0.08s ease-out, box-shadow 0.3s ease;
     }
+
     .card:hover .pfp {
-      transform: scale(1.08);
       box-shadow: 0 0 25px rgba(255,255,255,0.4);
     }
 
@@ -152,16 +153,19 @@
       gap: 10px;
       transition: 0.3s ease;
     }
+
     .btn img {
       width: 20px;
       height: 20px;
       transition: 0.3s ease;
       filter: drop-shadow(0 0 5px rgba(255,255,255,0.3));
     }
+
     .btn:hover {
       background: rgba(255, 255, 255, 0.25);
       transform: scale(1.05);
     }
+
     .btn:hover img {
       transform: scale(1.2);
       filter: drop-shadow(0 0 10px rgba(255,255,255,0.7));
@@ -182,7 +186,7 @@
   <!-- 💾 Основная карточка -->
   <div class="card" id="card">
     <div class="avatar-wrapper">
-      <img src="assets/icon.png" class="pfp">
+      <img src="assets/icon.png" class="pfp" id="pfp">
       <div id="discord-status-icon" class="status-icon"></div>
     </div>
     <div class="name">Thomson</div>
@@ -199,17 +203,7 @@
     const intro = document.getElementById("intro");
     const card = document.getElementById("card");
     const music = document.getElementById("bg-music");
-
-    // Ожидание клика на интро
-    intro.addEventListener("click", () => {
-      intro.classList.add("hide");
-      card.classList.add("show");
-      setTimeout(() => {
-        intro.remove();
-      }, 2000);
-      // Запуск музыки
-      music.play().catch(() => {});
-    });
+    const pfp = document.getElementById("pfp");
 
     // === Кнопки ссылок ===
     const links = [
@@ -249,9 +243,41 @@
         statusIcon.style.background = "#747f8d";
       }
     }
-
     updateStatus();
     setInterval(updateStatus, 15000);
+
+    // === Переход с интро и запуск музыки ===
+    intro.addEventListener("click", () => {
+      intro.classList.add("hide");
+      card.classList.add("show");
+      setTimeout(() => intro.remove(), 2000);
+
+      // Запуск музыки
+      music.play().catch(() => {});
+      startVisualizer();
+    });
+
+    // === Реакция иконки на бит ===
+    function startVisualizer() {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const src = audioCtx.createMediaElementSource(music);
+      const analyser = audioCtx.createAnalyser();
+      src.connect(analyser);
+      analyser.connect(audioCtx.destination);
+      analyser.fftSize = 256;
+
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      function animate() {
+        requestAnimationFrame(animate);
+        analyser.getByteFrequencyData(dataArray);
+        const avg = dataArray.reduce((a, b) => a + b) / bufferLength;
+        const scale = 1 + avg / 400; // чувствительность
+        pfp.style.transform = `scale(${Math.min(scale, 1.25)})`;
+      }
+      animate();
+    }
   </script>
 </body>
 </html>
