@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thomson | HATE</title>
+  <link rel="icon" href="https://cdn.discordapp.com/attachments/1348431342005911582/1417202436518449304/image.png" type="image/png">
+  <style>
+    * {
+      margin: 0; padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+    body {
+      height: 100vh;
+      background: url('https://cdn.discordapp.com/attachments/1348431342005911582/1417223228086288435/0915_11.gif') no-repeat center center/cover;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      overflow: hidden;
+    }
+    .card {
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(8px);
+      border-radius: 16px;
+      padding: 40px;
+      text-align: center;
+      width: 350px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.5);
+      transition: 0.3s;
+    }
+    .card:hover {
+      transform: scale(1.03);
+    }
+    .pfp {
+      width: 100px; height: 100px;
+      border-radius: 50%;
+      margin-bottom: 15px;
+      border: 3px solid #fff;
+    }
+    .name {
+      font-size: 28px;
+      font-weight: 600;
+      text-shadow: 0 0 10px rgba(255,255,255,0.5);
+    }
+    .status {
+      margin: 5px 0;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+    .links {
+      margin-top: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .btn {
+      background: rgba(255, 255, 255, 0.1);
+      padding: 10px;
+      border-radius: 10px;
+      color: white;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: 0.2s;
+    }
+    .btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+    .btn img {
+      width: 18px;
+      height: 18px;
+    }
+    audio {
+      position: fixed;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <img src="https://cdn.discordapp.com/attachments/1348431342005911582/1417202436518449304/image.png" class="pfp">
+    <div class="name">Thomson</div>
+    <div id="discord-status" class="status">Loading Discord status...</div>
+    <div class="status">HATE</div>
+
+    <div class="links" id="links"></div>
+  </div>
+
+  <audio controls autoplay loop>
+    <source src="https://cdn.discordapp.com/attachments/1348431342005911582/1433039154052337835/SODA_LUV_BUSHIDO_ZHO_-_Mi_Amore.mp3" type="audio/mp3">
+  </audio>
+
+  <script>
+    // === Кнопки (можно добавлять, менять, удалять) ===
+    const links = [
+      { icon: "https://cdn-icons-png.flaticon.com/512/5968/5968756.png", text: "Discord", url: "https://discord.com/users/1223426765045633255" },
+      { icon: "https://cdn-icons-png.flaticon.com/512/2111/2111646.png", text: "Telegram", url: "https://t.me/yourusername" },
+    ];
+
+    const linksContainer = document.getElementById("links");
+    links.forEach(link => {
+      const a = document.createElement("a");
+      a.href = link.url;
+      a.className = "btn";
+      a.target = "_blank";
+      a.innerHTML = `<img src="${link.icon}" alt=""> ${link.text}`;
+      linksContainer.appendChild(a);
+    });
+
+    // === Discord статус ===
+    async function updateStatus() {
+      try {
+        const res = await fetch("https://api.lanyard.rest/v1/users/1223426765045633255");
+        const data = await res.json();
+        const statusDiv = document.getElementById("discord-status");
+        if (!data.success) {
+          statusDiv.textContent = "Offline";
+          return;
+        }
+        const discordStatus = data.data.discord_status;
+        let statusText = "";
+        switch (discordStatus) {
+          case "online": statusText = "🟢 Online"; break;
+          case "idle": statusText = "🌙 Idle"; break;
+          case "dnd": statusText = "🔴 Do Not Disturb"; break;
+          default: statusText = "⚫ Offline";
+        }
+        statusDiv.textContent = statusText;
+      } catch {
+        document.getElementById("discord-status").textContent = "Offline";
+      }
+    }
+
+    updateStatus();
+    setInterval(updateStatus, 15000);
+  </script>
+</body>
+</html>
