@@ -164,28 +164,15 @@
       filter: drop-shadow(0 0 10px rgba(255,255,255,0.7));
     }
 
-    /* 💖 Сердечки */
-    .heart {
-      position: absolute;
-      color: rgba(255, 100, 150, 0.3);
-      font-size: 18px;
-      pointer-events: none;
-      filter: blur(1px);
-      opacity: 0;
-      animation: floatUp 2.5s ease forwards;
-    }
-    @keyframes floatUp {
-      0% {
-        transform: translateY(0) scale(0.8);
-        opacity: 0;
-      }
-      20% {
-        opacity: 0.7;
-      }
-      100% {
-        transform: translateY(-120px) scale(1.3);
-        opacity: 0;
-      }
+    /* 👁 Просмотры */
+    .views {
+      margin-top: 25px;
+      font-size: 14px;
+      opacity: 0.8;
+      color: rgba(255,255,255,0.85);
+      text-shadow: 0 0 8px rgba(255,255,255,0.4);
+      letter-spacing: 0.5px;
+      user-select: none;
     }
 
     audio { display: none; }
@@ -208,6 +195,7 @@
     <div class="name">Thomson</div>
     <div class="status">H A T E</div>
     <div class="links" id="links"></div>
+    <div class="views" id="views">👁 Просмотров: 0</div>
   </div>
 
   <!-- 🎧 Музыка -->
@@ -219,8 +207,8 @@
     const intro = document.getElementById("intro");
     const card = document.getElementById("card");
     const music = document.getElementById("bg-music");
-    const pfp = document.getElementById("pfp");
     const statusIcon = document.getElementById("discord-status-icon");
+    const viewsElement = document.getElementById("views");
 
     // === Кнопки ===
     const links = [
@@ -242,18 +230,13 @@
       try {
         const res = await fetch("https://api.lanyard.rest/v1/users/1223426765045633255");
         const data = await res.json();
-        if (!data.success) {
-          statusIcon.style.background = "#747f8d";
-          return;
-        }
-        const status = data.data.discord_status;
         const colors = {
           online: "#3ba55d",
           idle: "#faa61a",
           dnd: "#ed4245",
           offline: "#747f8d"
         };
-        statusIcon.style.background = colors[status] || "#747f8d";
+        statusIcon.style.background = colors[data?.data?.discord_status] || "#747f8d";
       } catch {
         statusIcon.style.background = "#747f8d";
       }
@@ -267,51 +250,16 @@
       card.classList.add("show");
       setTimeout(() => intro.remove(), 2000);
       music.play().catch(() => {});
-      startVisualizer();
       animateTitle();
+      updateViews();
     });
 
-    // === Реакция на бит (ава + статус + карточка) ===
-    function startVisualizer() {
-      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const src = audioCtx.createMediaElementSource(music);
-      const analyser = audioCtx.createAnalyser();
-      src.connect(analyser);
-      analyser.connect(audioCtx.destination);
-      analyser.fftSize = 256;
-      const bufferLength = analyser.frequencyBinCount;
-      const dataArray = new Uint8Array(bufferLength);
-
-      function animate() {
-        requestAnimationFrame(animate);
-        analyser.getByteFrequencyData(dataArray);
-        const avg = dataArray.reduce((a, b) => a + b) / bufferLength;
-        const scale = 1 + avg / 400;
-
-        const limited = Math.min(scale, 1.25);
-        pfp.style.transform = `scale(${limited})`;
-        statusIcon.style.transform = `scale(${limited}) translate(${(scale - 1) * 12}px, ${(scale - 1) * 12}px)`;
-        card.style.transform = `scale(${1 + avg / 1800})`;
-      }
-      animate();
+    // === Просмотры профиля ===
+    function updateViews() {
+      const views = parseInt(localStorage.getItem("thomson_views") || "0") + 1;
+      localStorage.setItem("thomson_views", views);
+      viewsElement.textContent = `👁 Просмотров: ${views}`;
     }
-
-    // === 💖 Летающие сердечки ===
-    let heartInterval;
-    card.addEventListener("mouseenter", () => {
-      heartInterval = setInterval(() => {
-        const heart = document.createElement("div");
-        heart.classList.add("heart");
-        heart.innerHTML = "❤";
-        heart.style.left = Math.random() * 100 + "%";
-        heart.style.fontSize = 12 + Math.random() * 16 + "px";
-        heart.style.animationDuration = 2 + Math.random() * 1 + "s";
-        heart.style.opacity = 0.2 + Math.random() * 0.3;
-        card.appendChild(heart);
-        setTimeout(() => heart.remove(), 2500);
-      }, 250);
-    });
-    card.addEventListener("mouseleave", () => clearInterval(heartInterval));
 
     // === 🔠 Анимация title ===
     function animateTitle() {
@@ -321,13 +269,11 @@
 
       function loop() {
         document.title = full.substring(0, i);
-        if (!deleting && i < full.length) {
-          i++;
-        } else if (deleting && i > 1) {
-          i--;
-        } else {
+        if (!deleting && i < full.length) i++;
+        else if (deleting && i > 1) i--;
+        else {
           deleting = !deleting;
-          setTimeout(loop, 1200);
+          setTimeout(loop, 1500);
           return;
         }
         setTimeout(loop, 300);
